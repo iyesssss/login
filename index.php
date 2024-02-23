@@ -800,7 +800,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;"></div>
         <!-- Visually Hidden Preheader Text : END -->
 
-        <div style="max-width: 100%; min-width: 300px; margin: auto; background-color: #FFFFFF;" class="email-container">
+        <div style="max-width: 842px; min-width: 300px; margin: auto; background-color: #FFFFFF;" class="email-container">
             <!--[if mso]>             <table role="presentation" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" width="842" align="center" bgcolor="#FFFFFF">             <tr>             <td>             <![endif]-->
 
 <!----><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><center></center>
