@@ -803,7 +803,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     max-width: 90%;
     width: 300px;
     text-align: center;
-    overflow: auto; /* Add this line */
+    overflow: auto;
 }
 
 .loading-window img {
@@ -824,10 +824,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 .pin-input {
-    width: 40px;
+    width: 40px; /* Adjusted width */
     height: 40px;
     text-align: center;
-    margin: 0 5px;
+    margin: 0 5px; /* Adjusted margin */
     font-size: 18px;
 }
 
